@@ -58,11 +58,12 @@ public class Patient {
     @Override
     public String toString() {
         return "Patient{" +
-                "PatientID=" + PatientID +
-                ", Surname='" + Surname + '\'' +
-                ", FirstName='" + FirstName + '\'' +
-                ", Address='" + Address + '\'' +
-                ", PhoneNumber='" + PhoneNumber + '\'' +
+                " PatientID = " + PatientID +
+                ", PatientNumber = '" + PatientNumber + '\'' +
+                ", Surname = '" + Surname + '\'' +
+                ", FirstName = '" + FirstName + '\'' +
+                ", Address = '" + Address + '\'' +
+                ", PhoneNumber = '" + PhoneNumber + '\'' +
                 '}';
     }
 

@@ -48,12 +48,12 @@ public class PatientDAO {
         ){
             while(resultSet.next()){
                 Patient patient = new Patient();
-                patient.setPatientID(resultSet.getInt("ID"));
-                patient.setPatientNumber(resultSet.getString("Patient Number"));
-                patient.setSurname(resultSet.getString("Patient Surname"));
-                patient.setFirstName(resultSet.getString("Patient First Name"));
+                patient.setPatientID(resultSet.getInt("PatientID"));
+                patient.setSurname(resultSet.getString("Surname"));
+                patient.setFirstName(resultSet.getString("FirstName"));
                 patient.setAddress(resultSet.getString("Address"));
-                patient.setPhoneNumber(resultSet.getString("Phone Number"));
+                patient.setPhoneNumber(resultSet.getString("PhoneNumber"));
+                patient.setPatientNumber(resultSet.getString("PatientNumber"));
 
                 patients.add(patient);
             }
@@ -67,18 +67,19 @@ public class PatientDAO {
 
 
     //Updating a Patient
-    public static void updatePatient(int PatientID, String PatientNumber, String Surname, String FirstName, String Address, String PhoneNumber) throws Exception{
-        String sql = "UPDATE Patient SET PatientNumber = ?, Surname = ?, FirstName = ?, Address = ?, PhoneNumber = ? WHERE PatientNumber = ?";
+    public static void updatePatient(String PatientNumber, String Surname, String FirstName, String Address, String PhoneNumber) throws Exception{
+        String sql = "UPDATE Patient SET Surname = ?, FirstName = ?, Address = ?, PhoneNumber = ? WHERE PatientNumber = ?";
 
         try(Connection connection = DBConnection.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)){
 
-            statement.setString(1, PatientNumber);
-            statement.setString(2, Surname);
-            statement.setString(3, FirstName);
-            statement.setString(4, Address);
-            statement.setString(5, PhoneNumber);
-            statement.setInt(6, PatientID);
+            //statement.setString(1, PatientNumber);
+            statement.setString(1, Surname);
+            statement.setString(2, FirstName);
+            statement.setString(3, Address);
+            statement.setString(4, PhoneNumber);
+            statement.setString(5, PatientNumber);
+            //statement.setInt(6, PatientID);
 
             int affectedRows = statement.executeUpdate();
 
@@ -90,23 +91,25 @@ public class PatientDAO {
         }
     }
 
-    public static void deletePatient(int PatientID) throws Exception{
+    public static void deletePatient(String PatientNumber) throws Exception{
         //First check if the patient has admission records
         String checksql = "SELECT COUNT(*) FROM Admission WHERE PatientID = ? ";
-        String deletesql = "DELETE FROM Patient WHERE PatientID = ?";
+        String deletesql = "DELETE FROM Patient WHERE PatientNumber = ?";
 
         try(Connection connection = DBConnection.getConnection();
             PreparedStatement checkStatement = connection.prepareStatement(checksql);
             PreparedStatement deleteStatement = connection.prepareStatement(deletesql)){
 
-            checkStatement.setInt(1, PatientID);
+            int patientId = getPatientIdByNumber(connection, PatientNumber);
+
+            checkStatement.setInt(1, patientId);
             ResultSet rs = checkStatement.executeQuery();
 
             if(rs.next() && rs.getInt(1) > 0){
                 throw new SQLException("Cannot delete patient with existing admission.");
             }
 
-            deleteStatement.setInt(1, PatientID);
+            deleteStatement.setString(1, PatientNumber);
 
             int affectedRows = deleteStatement.executeUpdate();
 
@@ -115,6 +118,18 @@ public class PatientDAO {
             }
 
             System.out.println("Patient deleted successfully!");
+        }
+    }
+
+    private static int getPatientIdByNumber(Connection connection, String patientNumber) throws SQLException {
+        String sql = "SELECT PatientID FROM Patient WHERE PatientNumber = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, patientNumber);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("PatientID");
+            }
+            throw new SQLException("Patient not found with number: " + patientNumber);
         }
     }
 }
